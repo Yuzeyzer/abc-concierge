@@ -1,61 +1,42 @@
 "use client";
-import { registerUser } from "@/api/user";
 import { Button } from "@/components/ui/button";
 import Container from "@/components/ui/container";
 import { Input } from "@/components/ui/input";
 import Typography from "@/components/ui/typography";
-import api from "@/lib/api";
+import { useSignup } from "@/hooks/useSignup";
 import { useState } from "react";
-
-interface RegistrationForm {
-  full_name: string; // Поле для ФИО
-  email: string;
-  password: string;
-}
+import { useRouter } from "next/navigation";
 
 export default function Register() {
-  const [form, setForm] = useState<RegistrationForm>({
-    full_name: "", // ФИО
+  const router = useRouter();
+  const [form, setForm] = useState({
+    full_name: "",
     email: "",
     password: "",
   });
-  const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+
+  
+
+  const { signup, error, isPending } = useSignup();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Преобразуем full_name в last_name, first_name, и middle_name
-    const [last_name, first_name, ...middleNameParts] = form.full_name
-      .trim()
-      .split(" ");
-    const middle_name = middleNameParts.join(" ") || '';
-
-    const data = {
-      last_name: last_name || "",
-      first_name: first_name || "",
-      middle_name: middle_name || "", // Если нет отчества, будет undefined
+    const result = await signup({
       email: form.email,
       password: form.password,
-    };
+      displayName: form.full_name,
+    });
 
-    const response = await registerUser(data);
-
-    if (response?.errors) {
-      setError(response.errors[0]);
+    if (result) {
+      router.push("/cabinet");
     }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setForm((prevForm) => ({
-      ...prevForm,
-      [name]: value, // Обновляем соответствующее поле
-    }));
-  };
-
-  const handleShowPassword = () => {
-    setShowPassword((prevShowPassword) => !prevShowPassword);
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   return (
@@ -65,62 +46,51 @@ export default function Register() {
       </Typography>
       <Container className="sm:p-[80px] p-12 flex items-center justify-center bg-[#FCFCFC]">
         <div className="w-full max-w-[395px]">
-          <Typography
-            tag="h4"
-            className="font-museo mb-6 text-2xl font-normal text-center"
-          >
+          <Typography tag="h4" className="font-museo mb-6 text-2xl font-normal text-center">
             РЕГИСТРАЦИЯ
           </Typography>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Input
-                type="text"
-                name="full_name"
-                placeholder="ФИО"
-                required
-                value={form.full_name}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div>
-              <Input
-                type="email"
-                name="email"
-                required
-                placeholder="Почта"
-                value={form.email}
-                onChange={handleChange}
-              />
-            </div>
-
+            <Input
+              type="text"
+              name="full_name"
+              placeholder="ФИО"
+              required
+              value={form.full_name}
+              onChange={handleChange}
+            />
+            <Input
+              type="email"
+              name="email"
+              placeholder="Почта"
+              required
+              value={form.email}
+              onChange={handleChange}
+            />
             <div className="relative">
               <Input
                 type={showPassword ? "text" : "password"}
                 name="password"
                 placeholder="Пароль"
                 required
+                minLength={6}
                 value={form.password}
                 onChange={handleChange}
               />
               <Button
                 type="button"
                 variant="link"
-                className="absolute inset-y-0 text-base bottom-2 right-0 text-[#030712] p-0"
-                onClick={handleShowPassword}
+                className="absolute inset-y-0 bottom-2 right-0 text-[#030712] p-0"
+                onClick={() => setShowPassword((prev) => !prev)}
               >
                 {showPassword ? "Скрыть" : "Показать"}
               </Button>
             </div>
-            {error && (
-              <p className="text-[#E5102E] text-sm font-museo font-normal mt-3">
-                {error}
-              </p>
-            )}
 
-            <Button type="submit" className="w-full tracking-[5px] !mt-10">
-              СОЗДАТЬ АККАУНТ
+            {error && <p className="text-[#E5102E] text-sm font-museo mt-3">{error}</p>}
+
+            <Button type="submit" className="w-full tracking-[5px] !mt-10" disabled={isPending}>
+              {isPending ? "РЕГИСТРАЦИЯ..." : "СОЗДАТЬ АККАУНТ"}
             </Button>
           </form>
 
@@ -131,13 +101,9 @@ export default function Register() {
             </a>
           </p>
 
-          {/* Ссылка для входа */}
-          <p className="font-museo mt-2 text-base font-light text-left  text-[#030712]">
+          <p className="font-museo mt-2 text-base font-light text-left text-[#030712]">
             Уже есть аккаунт?{" "}
-            <a
-              href="/auth/login"
-              className="text-[#E04403] font-normal underline"
-            >
+            <a href="/auth/login" className="text-[#E04403] font-normal underline">
               Войти
             </a>
           </p>

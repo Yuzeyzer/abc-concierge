@@ -4,11 +4,13 @@ import localFont from "next/font/local";
 import "./globals.css";
 import Header from "@/components/shared/header/Header";
 import Footer from "@/components/shared/footer/Footer";
+import { ReduxProvider } from "./providers";
 
 const playfairDisplay = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-playfair",
 });
+
 const museoSansCyrl = localFont({
   src: [
     {
@@ -42,7 +44,8 @@ const museoSansCyrl = localFont({
 
 export const metadata: Metadata = {
   title: "ABC Concierge",
-  description: `В нашем Консьерж-сервисе мы уделяем внимание каждому клиенту, предлагая индивидуальный подбор продуктов от мировых брендов. С заботой и вниманием мы поможем вам найти и получить наилучшие уходовые и декоративные средства, а также самые стильные бьюти-гаджеты!`,
+  description:
+    "В нашем Консьерж-сервисе мы уделяем внимание каждому клиенту, предлагая индивидуальный подбор продуктов от мировых брендов. С заботой и вниманием мы поможем вам найти и получить наилучшие уходовые и декоративные средства, а также самые стильные бьюти-гаджеты!",
   icons: {
     icon: "/images/logo-icon.svg",
     shortcut: "/images/logo-icon.svg",
@@ -65,9 +68,11 @@ export default function RootLayout({
       <body
         className={`${playfairDisplay.className} ${playfairDisplay.variable} ${museoSansCyrl.variable} text-[#030712]`}
       >
-        <Header />
-        {children}
-        <Footer />
+        <ReduxProvider>
+          <Header />
+          {children}
+          <Footer />
+        </ReduxProvider>
       </body>
     </html>
   );
