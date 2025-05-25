@@ -20,6 +20,7 @@ import { useRouter } from "next/navigation";
 import Typography from "@/components/ui/typography";
 import Image from "next/image";
 import { serverApi } from "@/lib/api";
+import { useCartStore } from "@/store/useCartStore"; 
 
 interface Cart {
   id: number;
@@ -59,68 +60,9 @@ interface CartItem {
 }
 
 const CartMenu = ({ children }: { children: React.ReactNode }) => {
-  const [isCatalogOpen, setIsCatalogOpen] = useState(false);
+  const { isOpen, open, close } = useCartStore();
   const router = useRouter();
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: 1,
-      sub_product: {
-        id: 1,
-        slug: "slug",
-        product: 1,
-        title: "Warm Wishes Effortless Bronzer Stick",
-        image: "/images/best-sellers/product-1.png",
-        size: {
-          id: 1,
-          kind: "kind",
-          value: 1,
-          description: "description",
-        },
-        color: {
-          id: 1,
-          name: "name",
-          hex_code: "hex_code",
-        },
-        stock: 1,
-        is_available: true,
-        final_price: 1,
-      },
-      quantity: 1,
-      sell_price: "sell_price",
-      sale_percent: "sale_percent",
-      final_price: "final_price",
-      total_price: "total_price",
-    },
-    {
-      id: 2,
-      sub_product: {
-        id: 1,
-        slug: "slug",
-        product: 1,
-        title: "title",
-        image: "/images/best-sellers/product-2.png",
-        size: {
-          id: 1,
-          kind: "kind",
-          value: 1,
-          description: "description",
-        },
-        color: {
-          id: 1,
-          name: "name",
-          hex_code: "hex_code",
-        },
-        stock: 1,
-        is_available: true,
-        final_price: 1,
-      },
-      quantity: 1,
-      sell_price: "215 USD",
-      sale_percent: "sale_percent",
-      final_price: "150 USD",
-      total_price: "total_price",
-    },
-  ]);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
   const handleIncreseQuantity = async (id: number) => {
     await serverApi.put(`cart/item/${id}`, {
@@ -155,9 +97,9 @@ const CartMenu = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   return (
-    <Sheet open={isCatalogOpen} onOpenChange={setIsCatalogOpen}>
+    <Sheet open={isOpen} onOpenChange={(isOpenValue) => (isOpenValue ? open() : close())}>
       {/* Trigger для открытия меню */}
-      <SheetTrigger asChild onClick={() => setIsCatalogOpen(true)}>
+      <SheetTrigger asChild>
         {children}
       </SheetTrigger>
 
