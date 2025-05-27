@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Typography from "@/components/ui/typography";
 import { HeartIcon } from "@/components/icons";
+import { useCartStore } from "@/store/useCartStore";
 
 interface ProductDetailsProps {
   title: string;
@@ -24,6 +25,17 @@ const ProductInfo: React.FC<ProductDetailsProps> = ({
 }) => {
   const [selectedShade, setSelectedShade] = useState(shades[0]);
   const [selectedSize, setSelectedSize] = useState(sizes[0].value);
+  const { addItem, open } = useCartStore();
+
+  const handleAddToCart = async () => {
+    try {
+      // Здесь нужно передать реальные ID продукта и подпродукта
+      await addItem(1, 1); // Замените на реальные значения
+      open(); // Открываем корзину после добавления
+    } catch (error) {
+      console.error("Ошибка при добавлении в корзину:", error);
+    }
+  };
 
   return (
     <Card className="sm:max-w-2xl border-none shadow-none p-0">
@@ -74,20 +86,14 @@ const ProductInfo: React.FC<ProductDetailsProps> = ({
           </div>
           <div className="flex gap-1">
             {shades.map((shade, index) => (
-              <button
-                key={index}
-                className={`w-9 h-9 p-1 rounded-full border inline-block ${
-                  selectedShade === shade
-                    ? "border-[#E04403] border-1"
-                    : "border-[transparent]"
-                }`}
-                onClick={() => setSelectedShade(shade)}
-              >
-                <span
-                  style={{ backgroundColor: shade }}
-                  className="inline-block w-full h-full rounded-full"
-                />
-              </button>
+              <Button 
+          onClick={handleAddToCart}
+          className="w-full flex gap-3 uppercase"
+        >
+          <span>В корзину</span>
+          <span>-</span>
+          <span className="">{price} ₽</span>
+        </Button>
             ))}
           </div>
         </div>

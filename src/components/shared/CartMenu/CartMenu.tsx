@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -7,27 +9,13 @@ import {
   SheetHeader,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import {
-  ChevronDown,
-  MinusIcon,
-  PlusIcon,
-  Trash2Icon,
-  TrashIcon,
-  X,
-} from "lucide-react";
+import { MinusIcon, PlusIcon, Trash2Icon, X } from "lucide-react";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { useRouter } from "next/navigation";
 import Typography from "@/components/ui/typography";
 import Image from "next/image";
 import { serverApi } from "@/lib/api";
-import { useCartStore } from "@/store/useCartStore"; 
-
-interface Cart {
-  id: number;
-  user: number;
-  session_key: string;
-  items: CartItem[];
-}
+import { useCartStore } from "@/store/useCartStore";
 
 interface CartItem {
   id: number;
@@ -64,58 +52,81 @@ const CartMenu = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
-  const handleIncreseQuantity = async (id: number) => {
-    await serverApi.put(`cart/item/${id}`, {
-      quantity: 1,
-    });
-
-    updateCart();
+  const updateCart = async () => {
+    try {
+      const { data } = await serverApi.get("cart/get");
+      setCartItems(data.items);
+    } catch (error) {
+      console.error("Ошибка получения корзины:", error);
+    }
   };
 
-  const handleDecreaseQuantity = async (id: number) => {
-    await serverApi.put(`cart/item/${id}`, {
-      quantity: 1,
-    });
+  const handleIncreaseQuantity = async (
+    id: number,
+    currentQty: number,
+    stock: number
+  ) => {
+    if (currentQty >= stock) return;
+    try {
+      await serverApi.put(`cart/item/${id}`, {
+        quantity: currentQty + 1,
+      });
+      await updateCart();
+    } catch (error) {
+      console.error("Ошибка при увеличении количества:", error);
+    }
+  };
 
-    updateCart();
+  const handleDecreaseQuantity = async (id: number, currentQty: number) => {
+    if (currentQty <= 1) return;
+    try {
+      await serverApi.put(`cart/item/${id}`, {
+        quantity: currentQty - 1,
+      });
+      await updateCart();
+    } catch (error) {
+      console.error("Ошибка при уменьшении количества:", error);
+    }
   };
 
   const handleRemoveProductFromCart = async (id: number) => {
-    await serverApi.delete(`cart/item/${id}`);
-
-    updateCart();
-  }
-
-  const updateCart = async () => {
-    const {data} = await serverApi.get("/cart/get");
-    setCartItems(data.items)
-    console.log('Результат cart/get', data);
-  }
+    try {
+      await serverApi.delete(`cart/item/${id}`);
+      await updateCart();
+    } catch (error) {
+      console.error("Ошибка при удалении из корзины:", error);
+    }
+  };
 
   useEffect(() => {
-    updateCart()
-  }, []);
+    if (isOpen) {
+      updateCart();
+    }
+  }, [isOpen]);
+
+  const total = cartItems
+    .reduce((acc, item) => acc + parseFloat(item.total_price), 0)
+    .toFixed(2);
 
   return (
-    <Sheet open={isOpen} onOpenChange={(isOpenValue) => (isOpenValue ? open() : close())}>
-      {/* Trigger для открытия меню */}
-      <SheetTrigger asChild>
-        {children}
-      </SheetTrigger>
+    <Sheet
+      open={isOpen}
+      onOpenChange={(isOpenValue) => (isOpenValue ? open() : close())}
+    >
+      <SheetTrigger asChild>{children}</SheetTrigger>
 
-      {/* Контент бокового меню */}
       <SheetContent
         side="right"
-        title="Cart Menu"
-        className="sm:w-[480px] w-[100%] top-[96px] sm:top-0  sm:max-w-[480px] bg-white text-black"
+        className="sm:w-[480px] w-full top-[96px] sm:top-0 sm:max-w-[480px] bg-white text-black"
       >
         <DialogTitle className="hidden">Cart Menu</DialogTitle>
-        <SheetHeader className="flex flex-row flex-nowrap justify-between font-museo items-center">
+        <SheetHeader className="flex flex-row justify-between font-museo items-center">
           <Typography tag="h5">КОРЗИНА</Typography>
           <SheetClose className="!mt-0">
             <X size={16} color="#030712" />
           </SheetClose>
         </SheetHeader>
+
         <div className="px-0 py-6 flex flex-col justify-between sm:h-full h-[calc(100%-96px)]">
           {!cartItems.length && (
             <div className="h-full flex gap-5 flex-col justify-center items-center">
@@ -127,22 +138,30 @@ const CartMenu = ({ children }: { children: React.ReactNode }) => {
               </Button>
             </div>
           )}
+
           {cartItems.length > 0 && (
-            <div className="flex flex-col gap-5">
-              {cartItems.map((item, index) => (
+            <div className="flex flex-col gap-5 overflow-y-auto">
+              {cartItems.map((item) => (
                 <div key={item.id} className="flex flex-row gap-4 items-center">
                   <div className="sm:w-[160px] sm:h-[160px]">
-                    <Image
-                      src={item.sub_product.image}
-                      alt={item.sub_product.title}
-                      height={160}
-                      width={160}
-                      className="sm:w-[160px] sm:h-[160px] w-[128px] h-[144px] object-cover max-w-[160px]"
-                    />
+                    {item.sub_product.image ? (
+                      <Image
+                        src={item.sub_product.image}
+                        alt={item.sub_product.title || "Изображение товара"}
+                        height={160}
+                        width={160}
+                        className="object-cover rounded"
+                      />
+                    ) : (
+                      <div className="w-[160px] h-[160px] bg-gray-200 flex items-center justify-center rounded">
+                        <span className="text-xs text-gray-500">Нет изображения</span>
+                      </div>
+                    )}
                   </div>
+
                   <div className="flex flex-1 flex-col justify-between h-full">
                     <div className="flex flex-row justify-between gap-6">
-                      <h5 className="text-sm sm:text-base text-[#030712] font-museo  !font-light flex-1">
+                      <h5 className="text-sm sm:text-base text-[#030712] font-museo !font-light flex-1">
                         {item.sub_product.title}
                       </h5>
                       <Trash2Icon
@@ -155,63 +174,43 @@ const CartMenu = ({ children }: { children: React.ReactNode }) => {
                     <div>
                       <div className="flex gap-3 mb-3 items-center">
                         <MinusIcon
-                          className="cursor-pointer"
+                          className={`cursor-pointer ${
+                            item.quantity <= 1 ? "opacity-50 pointer-events-none" : ""
+                          }`}
                           size={16}
                           color="#6D6D74"
-                          onClick={() => handleDecreaseQuantity(item.id)}
+                          onClick={() => handleDecreaseQuantity(item.id, item.quantity)}
                         />
-                        <Typography
-                          tag="span"
-                          className="font-museo text-[#030712] font-normal"
-                        >
-                          1
+                        <Typography tag="span" className="font-museo text-[#030712] font-normal">
+                          {item.quantity}
                         </Typography>
                         <PlusIcon
-                          className="cursor-pointer"
+                          className={`cursor-pointer ${
+                            item.quantity >= item.sub_product.stock ? "opacity-50 pointer-events-none" : ""
+                          }`}
                           size={16}
                           color="#6D6D74"
-                          onClick={() => handleIncreseQuantity(item.id)}
+                          onClick={() => handleIncreaseQuantity(item.id, item.quantity, item.sub_product.stock)}
                         />
                       </div>
-                      <div className="flex flex-row gap-2 items-center">
-                        <Typography
-                          tag="span"
-                          className="text-[#E04403] sm:text-sm font-museo font-normal"
-                        >
-                          {item.sell_price}
-                        </Typography>
-                        <Typography
-                          tag="span"
-                          className="text-[#6D6D74] sm:text-sm font-museo font-normal line-through"
-                        >
-                          {item.sell_price}
-                        </Typography>
-                      </div>
+                      <Typography tag="span" className="text-sm font-bold">
+                        {item.total_price} ₽
+                      </Typography>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
           )}
+
           {cartItems.length > 0 && (
-            <div>
-              <div className="flex justify-between mb-5">
-                <Typography
-                  tag="span"
-                  className="sm:text-base uppercase text-[#030712] font-museo font-light"
-                >
-                  ИТОГО:
-                </Typography>
-                <Typography
-                  tag="span"
-                  className="sm:text-base text-[#030712] font-museo font-normal"
-                >
-                  150 USD
-                </Typography>
-              </div>
-              <Button className="uppercase tracking-[5px] w-full">
-                ОФОРМИТЬ ЗАКАЗ
-              </Button>
+            <div className="mt-6 border-t pt-4 flex justify-between items-center">
+              <Typography tag="span" className="text-lg font-semibold">
+                Итого:
+              </Typography>
+              <Typography tag="span" className="text-lg font-semibold">
+                {total} ₽
+              </Typography>
             </div>
           )}
         </div>

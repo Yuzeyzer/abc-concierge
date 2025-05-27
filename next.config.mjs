@@ -1,14 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ["dev.abc-concierge.com"], // Укажите ваш хост
+    domains: ["dev.abc-concierge.com"],
   },
   typescript: {
     ignoreBuildErrors: true,
   },
-  experimental: {
-    missingSuspenseWithCSRBailout: false,
-  },
+  // experimental: {} // можно удалить, если больше ничего нет
 };
 
 export default nextConfig;

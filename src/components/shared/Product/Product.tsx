@@ -3,15 +3,14 @@ import { ProductProps } from "@/api/product";
 import HeartIcon from "@/components/icons/Heart";
 import { Button } from "@/components/ui/button";
 import Typography from "@/components/ui/typography";
-import { serverApi } from "@/lib/api";
-import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/useCartStore";
+import { useRouter } from "next/navigation";
 import React from "react";
 
 const Product = ({ product }: { product: ProductProps }) => {
-  const [isFavorite, setIsFavorite] = React.useState(false);
-  const { open } = useCartStore(); // доступ к методу открытия
   const router = useRouter();
+  const [isFavorite, setIsFavorite] = React.useState(false);
+  const { addItem, open } = useCartStore();
 
   React.useEffect(() => {
     const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
@@ -31,25 +30,18 @@ const Product = ({ product }: { product: ProductProps }) => {
     setIsFavorite(!exists);
   };
 
+  // ✅ Сделана асинхронной
+  const handleAddToCart = async (): Promise<void> => {
+    if (!product.sub_products?.length) return;
 
-  
-
-  const handleAddProductToCart = async ({
-    sub_product = 1,
-    quantity = 1,
-  }: {
-    sub_product?: number;
-    quantity?: number;
-  }) => {
     try {
-      await serverApi.post("/CartMenu", { sub_product, quantity });
-      open(); // открытие окна корзины (если реализовано в store)
+      await addItem(product.id, product.sub_products[0].id);
     } catch (error) {
-      console.error("Ошибка при добавлении товара в корзину:", error);
+      console.error("Ошибка при добавлении в корзину:", error);
     }
   };
 
-  const openProductDetails = () => router.push("/product/" + product.id);
+  const openProductDetails = () => router.push(`/product/${product.id}`);
 
   const imageUrl = (product as any).poster || (product as any).image;
 
@@ -95,12 +87,7 @@ const Product = ({ product }: { product: ProductProps }) => {
 
       <div className="mt-8 flex justify-between items-center">
         <Button
-          onClick={() =>
-            handleAddProductToCart({
-              quantity: 1,
-              sub_product: product.sub_products?.[0]?.id,
-            })
-          }
+          onClick={handleAddToCart}
           variant="outline"
           className="w-full"
         >

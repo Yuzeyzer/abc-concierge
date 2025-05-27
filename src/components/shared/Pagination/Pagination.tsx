@@ -43,8 +43,11 @@ const CustomPagination: React.FC<PaginationProps> = ({
       <PaginationContent>
         {getPages().map((page, index) =>
           typeof page === "number" ? (
-            <PaginationItem key={index} isActive={page === currentPage}>
-              <PaginationLink onClick={() => onPageChange(page)}>
+            <PaginationItem key={index}>
+              <PaginationLink
+                onClick={() => onPageChange(page)}
+                className={page === currentPage ? "font-bold text-blue-600" : ""}
+              >
                 {page}
               </PaginationLink>
             </PaginationItem>

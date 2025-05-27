@@ -1,4 +1,5 @@
-import api, { serverApi } from "@/lib/api";
+// @/api/product.ts
+import { serverApi } from "@/lib/api";
 
 export interface ProductsResponse {
   count: number;
@@ -25,20 +26,26 @@ interface Brand {
   description: string;
 }
 
+interface Color {
+  id: number;
+  name: string;
+  hex_code: string;
+}
+
 interface SubProduct {
   id: number;
   slug: string;
   product: number;
   size: number;
-  color: number;
+  color: Color; // <--- ОБНОВИЛИ ЗДЕСЬ
   stock: number;
   is_available: boolean;
   final_price: number;
 }
 
 interface ProductQueryParams {
-  brand?: number[]; // массив ID брендов
-  category?: number[]; // массив ID категорий
+  brand?: number[];
+  category?: number[];
   is_back_in_stock?: boolean;
   is_bestseller?: boolean;
   is_novelty?: boolean;
@@ -70,7 +77,6 @@ export const getProductById = async (
 ): Promise<ProductProps | unknown> => {
   try {
     const res = await serverApi.get("/product/" + id);
-
     return res.data;
   } catch (err) {
     return err;

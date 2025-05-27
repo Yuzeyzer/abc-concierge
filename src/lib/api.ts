@@ -1,11 +1,29 @@
 import axios from 'axios';
+// lib/api.ts
 
-// for server components
+
 export const serverApi = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
-  timeout: 130000,
-  withCredentials: true
-})
+  baseURL: "http://localhost:8000/api", // или явный URL
+  timeout: 10000,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// Добавьте интерцептор для авторизации
+serverApi.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+// for server components
+// export const serverApi = axios.create({
+//   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+//   timeout: 130000,
+//   withCredentials: true
+// })
 
 // client side api
 const api = axios.create({
