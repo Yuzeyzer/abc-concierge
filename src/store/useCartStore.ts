@@ -54,7 +54,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
 
   addItem: async (productId, subProductId) => {
     try {
-      await serverApi.post("/cart/add", {
+      await serverApi.post("/cart/item", {
         sub_product: subProductId,
         quantity: 1
       });

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/firebase/config"; // путь к Firebase инициализации
+import { auth } from "@/firebase/config";
 
 import { Button } from "@/components/ui/button";
 import Container from "@/components/ui/container";
@@ -12,6 +12,7 @@ import Typography from "@/components/ui/typography";
 import CabinerUserInfo from "./components/CabinerUserInfo";
 import CabinerFavorites from "./components/CabinerFavorites";
 import CabinerOrders from "./components/CabinerOrders";
+import { useLogout } from "@/hooks/useLogout"; // ✅ импорт хука
 
 const tabs = [
   { title: "Мои данные", value: "user-info" },
@@ -24,12 +25,14 @@ export default function CabinetPage() {
   const [selectedTab, setSelectedTab] = useState(tabs[0].value);
   const [loading, setLoading] = useState(true);
 
+  const { logout, isPending } = useLogout(); // ✅ вызов хука
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (!user) {
-        router.push("/auth/login"); // редирект если не авторизован
+        router.push("/auth/login");
       } else {
-        setLoading(false); // только после проверки покажем кабинет
+        setLoading(false);
       }
     });
 
@@ -61,11 +64,14 @@ export default function CabinetPage() {
               </TabsTrigger>
             ))}
           </TabsList>
+
           <Button
             variant="ghost"
             className="flex items-center sm:text-xl font-light p-0 !bg-transparent"
+            onClick={logout} // ✅ обработчик выхода
+            disabled={isPending} // блокируем кнопку при выходе
           >
-            Выйти
+            {isPending ? "Выход..." : "Выйти"}
           </Button>
         </div>
 

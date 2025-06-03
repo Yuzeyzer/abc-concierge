@@ -54,7 +54,7 @@ const CartMenu = ({ children }: { children: React.ReactNode }) => {
 
   const updateCart = async () => {
     try {
-      const { data } = await serverApi.get("/add");
+      const { data } = await serverApi.get("/product");
       setCartItems(data.items);
     } catch (error) {
       console.error("Ошибка получения корзины:", error);
@@ -104,9 +104,10 @@ const CartMenu = ({ children }: { children: React.ReactNode }) => {
     }
   }, [isOpen]);
 
-  const total = cartItems
-    .reduce((acc, item) => acc + parseFloat(item.total_price), 0)
-    .toFixed(2);
+const total = Array.isArray(cartItems)
+  ? cartItems.reduce((acc, item) => acc + parseFloat(item.total_price), 0).toFixed(2)
+  : "0.00";
+
 
   return (
     <Sheet
@@ -121,14 +122,15 @@ const CartMenu = ({ children }: { children: React.ReactNode }) => {
       >
         <DialogTitle className="hidden">Cart Menu</DialogTitle>
         <SheetHeader className="flex flex-row justify-between font-museo items-center">
-          <Typography tag="h5">КОРЗИНА</Typography>
+          <DialogTitle>КОРЗИНА</DialogTitle>
           <SheetClose className="!mt-0">
             <X size={16} color="#030712" />
           </SheetClose>
         </SheetHeader>
 
         <div className="px-0 py-6 flex flex-col justify-between sm:h-full h-[calc(100%-96px)]">
-          {!cartItems.length && (
+          {Array.isArray(cartItems) && cartItems.length === 0 && (
+
             <div className="h-full flex gap-5 flex-col justify-center items-center">
               <Typography tag="span" className="text-[#6D6D74] font-museo">
                 Ваша корзина пуста
@@ -139,7 +141,8 @@ const CartMenu = ({ children }: { children: React.ReactNode }) => {
             </div>
           )}
 
-          {cartItems.length > 0 && (
+          {Array.isArray(cartItems) && cartItems.length > 0 && (
+
             <div className="flex flex-col gap-5 overflow-y-auto">
               {cartItems.map((item) => (
                 <div key={item.id} className="flex flex-row gap-4 items-center">
@@ -203,7 +206,8 @@ const CartMenu = ({ children }: { children: React.ReactNode }) => {
             </div>
           )}
 
-          {cartItems.length > 0 && (
+          {Array.isArray(cartItems) && cartItems.length > 0 && (
+
             <div className="mt-6 border-t pt-4 flex justify-between items-center">
               <Typography tag="span" className="text-lg font-semibold">
                 Итого:

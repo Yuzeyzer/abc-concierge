@@ -2,11 +2,16 @@
 const nextConfig = {
   images: {
     domains: ["dev.abc-concierge.com"],
+    remotePatterns: [
+      {
+        protocol: 'http', // БЫЛО https, стало http
+        hostname: 'dev.abc-concierge.com',
+      },
+    ],
   },
   typescript: {
     ignoreBuildErrors: true,
   },
-  // experimental: {} // можно удалить, если больше ничего нет
 };
 
 export default nextConfig;
