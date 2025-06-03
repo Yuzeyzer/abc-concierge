@@ -3,7 +3,7 @@ import axios from 'axios';
 
 
 export const serverApi = axios.create({
-  baseURL: "http://localhost:8000/api", // или явный URL
+  baseURL: "https://dev.abc-concierge.com/api/v1", // или явный URL
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",

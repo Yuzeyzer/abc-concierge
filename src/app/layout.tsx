@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import { Playfair_Display } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
+
 import Header from "@/components/shared/header/Header";
 import Footer from "@/components/shared/footer/Footer";
 import { ReduxProvider } from "./providers";
+import { AuthListener } from "@/components/auth/AuthListener";
 
 const playfairDisplay = Playfair_Display({
   subsets: ["latin"],
@@ -69,6 +71,7 @@ export default function RootLayout({
         className={`${playfairDisplay.className} ${playfairDisplay.variable} ${museoSansCyrl.variable} text-[#030712]`}
       >
         <ReduxProvider>
+          <AuthListener /> {/* ✅ Слушатель аутентификации */}
           <Header />
           {children}
           <Footer />

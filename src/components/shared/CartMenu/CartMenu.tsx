@@ -54,7 +54,7 @@ const CartMenu = ({ children }: { children: React.ReactNode }) => {
 
   const updateCart = async () => {
     try {
-      const { data } = await serverApi.get("cart/get");
+      const { data } = await serverApi.get("/add");
       setCartItems(data.items);
     } catch (error) {
       console.error("Ошибка получения корзины:", error);
