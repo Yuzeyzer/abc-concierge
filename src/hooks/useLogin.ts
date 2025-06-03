@@ -1,7 +1,7 @@
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useState } from "react";
 import { auth, db } from "../firebase/config";
-import { doc, getDoc } from "firebase/firestore"; // Добавлен getDoc для получения данных пользователя
+import { doc, getDoc } from "firebase/firestore";
 import { useDispatch } from "react-redux";
 import { setUser } from "@/features/user/userSlice";
 
@@ -15,7 +15,7 @@ export const useLogin = () => {
     setIsPending(true);
 
     try {
-      // Авторизация пользователя
+      // 🔐 Авторизация через Firebase
       const response = await signInWithEmailAndPassword(auth, email, password);
 
       if (!response) {
@@ -23,34 +23,43 @@ export const useLogin = () => {
         return null;
       }
 
-      // Получаем данные пользователя из Firestore
-      const userDoc = await getDoc(doc(db, "users", response.user.uid));
+      const user = response.user;
 
-      if (!userDoc.exists()) {
-        setError("Данные пользователя не найдены");
+      // 📥 Получение токена
+      const token = await response.user.getIdToken();
+      localStorage.setItem("token", token);
+      console.log("✅ Токен сохранён в localStorage:", token);
+
+
+      // 📚 Получение информации о пользователе из Firestore
+      const userDocRef = doc(db, "users", user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (!userDocSnap.exists()) {
+        setError("Пользователь не найден в базе данных");
         return null;
       }
 
-      const userData = userDoc.data();
+      const userData = userDocSnap.data();
 
-      // Добавляем роль пользователя в объект пользователя
+      // 🧾 Создаём объект пользователя
       const userWithRole = {
-        ...response.user,
-        role: userData.role || "user", // По умолчанию роль 'user', если она не указана
+        email: user.email,
+        uid: user.uid,
+        role: userData.role || "user", // если нет роли — ставим user
       };
 
-      // Обновляем Redux-стор с данными пользователя, включая роль
-      dispatch(setUser({email}
-      ));
+      // ✅ Обновляем Redux-стейт
+      dispatch(setUser(userWithRole));
 
-      return userWithRole; // Возвращаем пользователя с ролью
+      return userWithRole;
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Произошла ошибка при входе");
       return null;
     } finally {
       setIsPending(false);
     }
   };
 
-  return { error, isPending, login };
+  return { login, error, isPending };
 };

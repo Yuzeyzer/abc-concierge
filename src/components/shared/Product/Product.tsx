@@ -14,7 +14,7 @@ const Product = ({ product }: { product: ProductProps }) => {
   const [isFavorite, setIsFavorite] = React.useState(false);
   const { open } = useCartStore();
 
-  const imageUrl = product.posters?.[0]?.url || product.sub_products?.[0]?.images?.[0]?.url || "/images/default-product.png";
+  const imageUrl = product.posters?.[0]?.url || product.sub_products?.[0]?.poster?.[0]?.url || "/images/best-sellers/product-1.png";
 
   React.useEffect(() => {
     const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");

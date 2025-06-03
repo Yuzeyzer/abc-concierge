@@ -1,70 +1,21 @@
-import axios from 'axios';
-// lib/api.ts
-
+import axios from "axios";
 
 export const serverApi = axios.create({
-  baseURL: "https://dev.abc-concierge.com/api/v1", // или явный URL
-  timeout: 10000,
+  baseURL: "https://dev.abc-concierge.com/api/v1", // или свой
   headers: {
     "Content-Type": "application/json",
+    Accept: "application/json",
   },
 });
 
-// Добавьте интерцептор для авторизации
+// 📌 ДОБАВЛЯЕМ токен перед каждым запросом
 serverApi.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token");  
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+    console.log("✅ Токен добавлен в заголовки");
+  } else {
+    console.warn("⛔ Пользователь не авторизован — токен не будет отправлен.");
   }
   return config;
 });
-// for server components
-// export const serverApi = axios.create({
-//   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
-//   timeout: 130000,
-//   withCredentials: true
-// })
-
-// client side api
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL, // Базовый URL для запросов
-  timeout: 130000, // Таймаут в миллисекундах,
-  // withCredentials: true
-});
-
-const noAuthRequiredPaths = ['/delivery', '/about_us', '/pages/gift_certificate/featured'];
-
-// Добавляем интерсептор запросов
-api.interceptors.request.use(
-  (config) => {
-    if (!localStorage) return config;
-  
-    const token = localStorage?.getItem('token');
-    if (token && noAuthRequiredPaths.every((path) => !config.url?.includes(path))) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    // Обработка ошибок перед отправкой запроса
-    return Promise.reject(error);
-  }
-);
-
-// Добавляем интерсептор ответов
-api.interceptors.response.use(
-  (response) => {
-    // Например, обрабатываем успешный ответ
-    return response;
-  },
-  (error) => {
-    // Например, перехватываем 401 ошибку
-    if (error.response?.status === 401) {
-      console.error('Unauthorized! Redirecting to login...');
-      // Логика выхода из аккаунта или перенаправления на страницу входа
-    }
-    return Promise.reject(error);
-  }
-);
-
-export default api;
