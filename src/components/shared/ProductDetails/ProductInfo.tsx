@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Typography from "@/components/ui/typography";
 import { HeartIcon } from "@/components/icons";
+import { addProductToCart } from "@/services/cartService";
 import { useCartStore } from "@/store/useCartStore";
 
 interface ProductDetailsProps {
@@ -29,13 +30,14 @@ const ProductInfo: React.FC<ProductDetailsProps> = ({
 
   const handleAddToCart = async () => {
     try {
-      // Здесь нужно передать реальные ID продукта и подпродукта
-      await addItem(1, 1); // Замените на реальные значения
-      open(); // Открываем корзину после добавления
+      await addProductToCart(1, 1); // Тут подставь актуальный id подпродукта
+      open();
     } catch (error) {
-      console.error("Ошибка при добавлении в корзину:", error);
+      console.error("Ошибка при добавлении товара:", error);
     }
   };
+  
+  
 
   return (
     <Card className="sm:max-w-2xl border-none shadow-none p-0">
@@ -85,16 +87,18 @@ const ProductInfo: React.FC<ProductDetailsProps> = ({
             </span>
           </div>
           <div className="flex gap-1">
-            {shades.map((shade, index) => (
-              <Button 
-          onClick={handleAddToCart}
-          className="w-full flex gap-3 uppercase"
-        >
-          <span>В корзину</span>
-          <span>-</span>
-          <span className="">{price} ₽</span>
-        </Button>
-            ))}
+          {shades.map((shade) => (
+  <Button 
+    key={shade}
+    onClick={handleAddToCart}
+    className="w-full flex gap-3 uppercase"
+  >
+    <span>В корзину</span>
+    <span>-</span>
+    <span className="">{price} ₽</span>
+  </Button>
+))}
+
           </div>
         </div>
 

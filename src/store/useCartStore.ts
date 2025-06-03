@@ -1,90 +1,65 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import { serverApi } from "@/lib/api";
 
-interface CartItem {
+export interface CartItem {
   id: number;
   sub_product: {
     id: number;
-    product: number;
+    slug: string;
     title: string;
     image: string;
-    final_price: number;
     stock: number;
+    final_price: number;
   };
   quantity: number;
-  final_price: string;
   total_price: string;
 }
 
-interface CartStore {
+interface CartState {
   isOpen: boolean;
-  items: CartItem[];
-  total: number;
-  count: number;
+  cartItems: CartItem[];
+  totalAmount: string;
   open: () => void;
   close: () => void;
-  addItem: (productId: number, subProductId: number) => Promise<void>;
-  removeItem: (itemId: number) => Promise<void>;
-  updateQuantity: (itemId: number, quantity: number) => Promise<void>;
   fetchCart: () => Promise<void>;
-  clearCart: () => void;
+  increaseItem: (id: number) => Promise<void>;
+  decreaseItem: (id: number) => Promise<void>;
+  removeItem: (id: number) => Promise<void>;
 }
 
-export const useCartStore = create<CartStore>((set, get) => ({
-  isOpen: false,
-  items: [],
-  total: 0,
-  count: 0,
+export const useCartStore = create<CartState>()(
+  persist(
+    (set) => ({
+      isOpen: false,
+      cartItems: [],
+      totalAmount: "0.00",
+      open: () => set({ isOpen: true }),
+      close: () => set({ isOpen: false }),
 
-  open: () => set({ isOpen: true }),
-  close: () => set({ isOpen: false }),
+      fetchCart: async () => {
+        const { data } = await serverApi.get("/cart/get");
+        set({
+          cartItems: data.items || [],
+          totalAmount: data.total_amount || "0.00",
+        });
+      },
 
-  fetchCart: async () => {
-    try {
-      const { data } = await serverApi.get("/cart/get");
-      set({
-        items: data.items,
-        total: parseFloat(data.total),
-        count: data.count
-      });
-    } catch (error) {
-      console.error("Ошибка при загрузке корзины:", error);
-    }
-  },
+      increaseItem: async (itemId) => {
+        await serverApi.put(`/cart/item/${itemId}`, { quantity: 1 }); // Добавляем по 1
+        await useCartStore.getState().fetchCart();
+      },
 
-  addItem: async (productId, subProductId) => {
-    try {
-      await serverApi.post("/cart/add", {
-        sub_product: subProductId,
-        quantity: 1
-      });
-      await get().fetchCart();
-      set({ isOpen: true }); // Автоматически открываем корзину
-    } catch (error) {
-      console.error("Ошибка при добавлении товара:", error);
-      throw error;
-    }
-  },
+      decreaseItem: async (itemId) => {
+        await serverApi.put(`/cart/item/${itemId}`, { quantity: -1 }); // Уменьшаем на 1
+        await useCartStore.getState().fetchCart();
+      },
 
-  removeItem: async (itemId) => {
-    try {
-      await serverApi.delete(`/cart/item/${itemId}`);
-      await get().fetchCart();
-    } catch (error) {
-      console.error("Ошибка при удалении товара:", error);
-    }
-  },
-
-  updateQuantity: async (itemId, quantity) => {
-    if (quantity < 1) return;
-    
-    try {
-      await serverApi.put(`/cart/item/${itemId}`, { quantity });
-      await get().fetchCart();
-    } catch (error) {
-      console.error("Ошибка при обновлении количества:", error);
-    }
-  },
-
-  clearCart: () => set({ items: [], total: 0, count: 0 })
-}));
+      removeItem: async (itemId) => {
+        await serverApi.delete(`/cart/item/${itemId}`);
+        await useCartStore.getState().fetchCart();
+      },
+    }),
+    { name: "cart-store" }
+  )
+);

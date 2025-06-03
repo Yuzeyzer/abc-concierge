@@ -12,11 +12,13 @@ export interface ProductProps {
   id: number;
   name: string;
   slug: string;
-  poster: string;
+  poster?: string; // оставить, если есть
+  posters?: { id: number; image: string }[]; // добавить, если нужен массив
   brand: Brand;
   sub_products: SubProduct[];
   is_favorite: boolean;
 }
+
 
 interface Brand {
   id: number;
