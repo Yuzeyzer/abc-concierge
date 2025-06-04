@@ -13,59 +13,65 @@ const Product = ({ product }: { product: ProductProps }) => {
   const [inCart, setInCart] = React.useState(false);
 
   const imageUrl =
-    product.posters?.[0]?.url ||
-    product.sub_products?.[0]?.poster?.[0]?.url ||
+    product.posters?.[0]?.image ||
+    product.poster ||
     "/images/best-sellers/product-1.png";
 
-  const subProduct = product.sub_products?.[0];
-  const subProductId = subProduct?.id || product.id;
-
-  const handleAddToCart = () => {
-  const subProduct = product.sub_products?.[0];
-
-  if (!subProduct) return;
-
-  const existingCart = JSON.parse(localStorage.getItem("cart") || "[]");
-
-  const existingItemIndex = existingCart.findIndex(
-    (item: any) => item.sub_product.id === subProduct.id
+  // Выбираем subProduct, у которого есть цена
+  const subProduct = product.sub_products?.find(
+    (sp) => sp && sp.final_price !== undefined
   );
+  const subProductId = subProduct?.id;
 
-  if (existingItemIndex !== -1) {
-    // Увеличиваем количество
-    existingCart[existingItemIndex].quantity += 1;
-    existingCart[existingItemIndex].total_price = (
-      existingCart[existingItemIndex].quantity * subProduct.final_price
-    ).toFixed(2);
-  } else {
-    existingCart.push({
-      id: Date.now(), // можно заменить на UUID
-      sub_product: {
-        id: subProduct.id,
-        title: product.name,
-        images: subProduct.poster,
-        final_price: subProduct.final_price,
-      },
-      quantity: 1,
-      total_price: subProduct.final_price.toFixed(2),
-    });
-  }
+  const toggleCart = () => {
+    console.log("Добавление в корзину нажато");
 
-  localStorage.setItem("cart", JSON.stringify(existingCart));
-  open(); // открыть корзину
-};
+    if (!subProduct) {
+      console.warn("Нет subProduct — товар не может быть добавлен");
+      return;
+    }
 
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
 
-  // Проверка наличия в избранных
+    const existingIndex = cart.findIndex(
+      (item: any) => item.sub_product?.id === subProduct.id
+    );
+
+    if (existingIndex !== -1) {
+      cart.splice(existingIndex, 1);
+      setInCart(false);
+    } else {
+      cart.push({
+        id: Date.now(),
+        sub_product: {
+          id: subProduct.id,
+          title: product.name,
+          posters: (product.posters || []).map((p: any) => ({
+            url: p.image,
+          })),
+          final_price: subProduct.final_price,
+        },
+        quantity: 1,
+        total_price: subProduct.final_price.toFixed(2),
+      });
+      setInCart(true);
+    }
+
+    localStorage.setItem("cart", JSON.stringify(cart));
+    console.log("Сохранено в localStorage:", cart);
+  };
+
   React.useEffect(() => {
     const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
     setIsFavorite(favorites.some((fav: any) => fav.id === product.id));
   }, [product.id]);
 
-  // Проверка наличия в корзине
   React.useEffect(() => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    setInCart(cart.some((item: any) => item.id === subProductId));
+    const exists = cart.some(
+      (item: any) => item.sub_product?.id === subProductId
+    );
+    setInCart(exists);
   }, [subProductId]);
 
   const toggleFavorite = () => {
@@ -76,16 +82,6 @@ const Product = ({ product }: { product: ProductProps }) => {
       : [...favorites, product];
     localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
     setIsFavorite(!exists);
-  };
-
-  const toggleCart = () => {
-    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    const exists = cart.some((item: any) => item.id === subProductId);
-    const updatedCart = exists
-      ? cart.filter((item: any) => item.id !== subProductId)
-      : [...cart, { id: subProductId, product, quantity: 1 }];
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
-    setInCart(!exists);
   };
 
   const openProductDetails = () => router.push(`/product/${product.id}`);
@@ -131,9 +127,21 @@ const Product = ({ product }: { product: ProductProps }) => {
       </div>
 
       <div className="mt-8 flex justify-between items-center">
-        <Button onClick={toggleCart} variant={inCart ? "default" : "outline"} className="w-full">
-          {inCart ? "Удалить из корзины" : `В корзину – ${subProduct?.final_price || product.price || "0"} ₽`}
-        </Button>
+        {subProduct ? (
+          <Button
+            onClick={toggleCart}
+            variant={inCart ? "default" : "outline"}
+            className="w-full"
+          >
+            {inCart
+              ? "Удалить из корзины"
+              : `В корзину – ${subProduct.final_price} ₽`}
+          </Button>
+        ) : (
+          <Button variant="outline" disabled className="w-full">
+            Нет в наличии
+          </Button>
+        )}
       </div>
     </div>
   );

@@ -1,84 +1,12 @@
-import SortDropdown from "@/components/shared/SortDropdown/SortDropdown";
+"use client";
+
 import React from "react";
 import { PlusIcon } from "lucide-react";
-
-const Order = () => {
-  return (
-    <div className="p-4 border rounded-lg shadow-md bg-white font-museo">
-      <div className="text-sm text-gray-600 mb-2">
-        <span className="font-medium">
-          Доставлено в понедельник, 10 марта 2024
-        </span>
-      </div>
-      <div className="flex items-start">
-        <img
-          src="https://via.placeholder.com/64"
-          alt="Product Image"
-          className="w-16 h-16 rounded-lg border border-gray-200"
-        />
-        <div className="ml-4">
-          <h2 className="font-medium text-lg">
-            Warm Wishes Effortless Bronzer Stick
-          </h2>
-          <p className="text-sm text-gray-500">Bronzer Stick</p>
-          <p className="text-sm text-gray-500 mt-1">
-            <span className="font-medium">Оттенок:</span> Светло-розовый
-          </p>
-          <p className="text-sm text-gray-500">
-            <span className="font-medium">Объем:</span> 240мл
-          </p>
-        </div>
-      </div>
-      <div className="mt-4 flex justify-between items-center">
-        <button className="text-orange-500 font-medium text-sm hover:underline">
-          Оставить отзыв
-        </button>
-        <div className="flex items-center">
-          <span className="text-sm text-gray-500 mr-2">Оценить:</span>
-          <div className="flex space-x-1">
-            <svg
-              className="w-5 h-5 text-orange-500"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z" />
-            </svg>
-            <svg
-              className="w-5 h-5 text-orange-500"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z" />
-            </svg>
-            <svg
-              className="w-5 h-5 text-orange-500"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z" />
-            </svg>
-            <svg
-              className="w-5 h-5 text-orange-500"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z" />
-            </svg>
-            <svg
-              className="w-5 h-5 text-gray-300"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z" />
-            </svg>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+import SortDropdown from "@/components/shared/SortDropdown/SortDropdown";
 
 const CabinerOrders = () => {
+  const orders: any[] = []; // ← Пустой массив заказов
+
   return (
     <div className="pt-12">
       <div className="flex justify-end pb-6">
@@ -100,11 +28,18 @@ const CabinerOrders = () => {
           />
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-5">
-        {[1, 2, 3, 4].map((order) => (
-          <Order key={order} />
-        ))}
-      </div>
+
+      {orders.length === 0 ? (
+        <div className="text-center py-16">
+          <p className="text-lg text-gray-500">У вас пока нет заказов</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-5">
+          {orders.map((order, index) => (
+            <Order key={index} />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
