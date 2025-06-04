@@ -14,7 +14,7 @@ interface CartItem {
   sub_product: {
     id: number;
     title: string;
-    images: { url: string }[];
+    posters: { url: string }[];
     final_price: number;
   };
   quantity: number;
@@ -25,33 +25,39 @@ const CartMenu = ({ children }: { children: React.ReactNode }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
-  const fetchCart = async () => {
-    try {
-      const { data } = await serverApi.get("/cart/get");
-      setCartItems(data.items || []);
-    } catch (error) {
-      console.error("Ошибка получения корзины:", error);
-    }
-  };
+const fetchCart = () => {
+  const items = JSON.parse(localStorage.getItem("cart") || "[]");
+  setCartItems(items);
+};
 
-  const updateQuantity = async (id: number, quantity: number) => {
-    if (quantity < 1) return;
-    try {
-      await serverApi.put(`/cart/item/${id}`, { quantity });
-      fetchCart();
-    } catch (error) {
-      console.error("Ошибка при обновлении количества:", error);
-    }
-  };
 
-  const removeItem = async (id: number) => {
-    try {
-      await serverApi.delete(`/cart/item/${id}`);
-      fetchCart();
-    } catch (error) {
-      console.error("Ошибка при удалении товара:", error);
-    }
-  };
+const updateQuantity = (id: number, quantity: number) => {
+  if (quantity < 1) return;
+
+  const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+
+  const updatedCart = cart.map((item: any) =>
+    item.id === id
+      ? {
+          ...item,
+          quantity,
+          total_price: (item.sub_product.final_price * quantity).toFixed(2),
+        }
+      : item
+  );
+
+  localStorage.setItem("cart", JSON.stringify(updatedCart));
+  setCartItems(updatedCart);
+};
+
+
+const removeItem = (id: number) => {
+  const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+  const updatedCart = cart.filter((item: any) => item.id !== id);
+  localStorage.setItem("cart", JSON.stringify(updatedCart));
+  setCartItems(updatedCart);
+};
+
 
   useEffect(() => {
     if (isOpen) fetchCart();
@@ -80,15 +86,21 @@ const CartMenu = ({ children }: { children: React.ReactNode }) => {
             <>
               {cartItems.map((item) => (
                 <div key={item.id} className="flex gap-4 items-center">
-                  <Image
-                    src={item.sub_product.images?.[0]?.url || "/images/default-product.png"}
-                    alt={item.sub_product.title}
-                    width={80}
-                    height={80}
-                    className="object-cover rounded"
-                  />
+                  {item.sub_product?.posters?.[0]?.image ? (
+  <Image
+    src={item.sub_product.posters[0].image}
+    alt="Product image"
+    width={80}
+    height={80}
+    className="object-cover rounded"
+  />
+) : (
+  <div className="w-[80px] h-[80px] bg-gray-200 rounded" />
+)}
+
+
                   <div className="flex-1">
-                    <Typography tag="h5" className="text-sm">{item.sub_product.title}</Typography>
+                    {/* <Typography tag="h5" className="text-sm">{item.sub_product.title}</Typography> */}
                     <div className="flex items-center gap-2 mt-2">
                       <MinusIcon size={16} onClick={() => updateQuantity(item.id, item.quantity - 1)} className="cursor-pointer" />
                       <span>{item.quantity}</span>
