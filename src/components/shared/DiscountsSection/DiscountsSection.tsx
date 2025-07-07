@@ -26,7 +26,7 @@ const DiscountsSection = ({
               <span className="text-[#E04403] text-base font-bold font-museo uppercase">
                 Скидки
               </span>
-              <Typography tag="h2" className="text-[42px] my-5 px-4">
+              <Typography tag="h2" className="text-[42px] my-5 px-4 text-[#E04403]">
                 {title}
               </Typography>
               <Typography tag="p" className="text-[#6D6D74] font-museo">
@@ -40,6 +40,7 @@ const DiscountsSection = ({
             alt="banner"
             width={670}
             height={600}
+            className="w-[670px] h-full object-cover"
           />
         </div>
       </div>

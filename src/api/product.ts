@@ -1,10 +1,11 @@
+import { Product } from "@/components/interfaces/product";
 import api, { serverApi } from "@/lib/api";
 
 export interface ProductsResponse {
   count: number;
   next: string | null;
   previous: string | null;
-  results: ProductProps[];
+  results: Product[];
 }
 
 export interface ProductProps {
@@ -14,6 +15,9 @@ export interface ProductProps {
   poster: string;
   brand: Brand;
   sub_products: SubProduct[];
+  description: string;
+  price: number;
+  final_price: number;
   is_favorite: boolean;
 }
 
@@ -50,6 +54,16 @@ interface ProductQueryParams {
   search?: string;
 }
 
+export interface Category {
+  id: number;
+  name: string;
+  slug: string;
+  is_featured: boolean;
+  parent: number | null;
+  category_characteristics: any[]; // Замените на нужный интерфейс, если характеристики известны
+  children: Category[];
+}
+
 export const getProducts = async (params?: ProductQueryParams) => {
   let data: ProductsResponse | undefined;
   let errors = [];
@@ -76,3 +90,10 @@ export const getProductById = async (
     return err;
   }
 };
+
+export const getProductCategories = async (): Promise<Category[]> => {
+  const res = await serverApi.get("/product/category/featured");
+
+  return res.data;
+};
+

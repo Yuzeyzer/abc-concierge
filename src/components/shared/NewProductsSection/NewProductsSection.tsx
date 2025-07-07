@@ -6,56 +6,9 @@ import { FC, useEffect, useState } from "react";
 import Product from "../Product/Product";
 import { getProducts } from "@/api/product";
 
-const products = [
-  {
-    id: 1,
-    name: "Warm Wishes Effortless Bronzer Stick",
-    price: 1200,
-    image: "/images/best-sellers/product-1.png",
-    shades: [
-      "#F5D3BB",
-      "#D8A88C",
-      "#AB7567",
-      "#8C5046",
-      "#5F322B",
-      "#D8A88C",
-      "#AB7567",
-    ],
-  },
-  {
-    id: 2,
-    name: "Warm Wishes Effortless Bronzer Stick",
-    price: 1200,
-    image: "/images/best-sellers/product-2.png",
-    shades: ["#F5D3BB", "#D8A88C", "#AB7567", "#8C5046", "#5F322B", "#AB7567"],
-  },
-  {
-    id: 3,
-    name: "Warm Wishes Effortless Bronzer Stick",
-    price: 1200,
-    image: "/images/best-sellers/product-3.png",
-    shades: [
-      "#F5D3BB",
-      "#D8A88C",
-      "#AB7567",
-      "#8C5046",
-      "#5F322B",
-      "#D8A88C",
-      "#AB7567",
-    ],
-  },
-  {
-    id: 4,
-    name: "Warm Wishes Effortless Bronzer Stick",
-    price: 1200,
-    image: "/images/best-sellers/product-4.png",
-    shades: ["#F5D3BB", "#D8A88C", "#AB7567", "#8C5046", "#5F322B", "#AB7567"],
-  },
-];
-
 const NewProductsSection: FC = async () => {
-  const { data } = await getProducts();
-  console.log(data)
+  const { data } = await getProducts({ is_novelty: true });
+
   return (
     <section className="py-12">
       <Container className="">
@@ -70,7 +23,11 @@ const NewProductsSection: FC = async () => {
         </div>
         <div className="flex overflow-x-auto gap-8 pb-2">
           {data?.results.map((product) => (
-            <Product product={product} key={product.id} />
+            <Product
+              product={product}
+              key={product.id}
+              className="min-w-[317px]"
+            />
           ))}
         </div>
       </Container>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -10,15 +10,26 @@ import {
 import { ChevronDown, X } from "lucide-react";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { useRouter } from "next/navigation";
+import MultiLevelDropdownMenu from "./MultiLevelDropdownMenu";
+import { Category, getProductCategories } from "@/api/product";
 
 const SidebarMenu = ({ children }: { children: React.ReactNode }) => {
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
   const router = useRouter();
 
   const handleSelectNavItem = (url: string) => {
     router.push(url);
     setIsCatalogOpen(false);
   };
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const categories = await getProductCategories();
+      setCategories(categories);
+    };
+    fetchCategories();
+  }, []);
 
   return (
     <Sheet open={isCatalogOpen} onOpenChange={setIsCatalogOpen}>
@@ -51,6 +62,7 @@ const SidebarMenu = ({ children }: { children: React.ReactNode }) => {
               onClick={() => setIsCatalogOpen(!isCatalogOpen)}
             >
               Каталог
+   
               <ChevronDown
                 size={16}
                 className={`transform transition-transform  ${
@@ -59,46 +71,12 @@ const SidebarMenu = ({ children }: { children: React.ReactNode }) => {
               />
             </button>
             {isCatalogOpen && (
-              <ul className="mt-2 space-y-2 text-sm font-museo font-light mb-6">
-                <li
-                  className="cursor-pointer"
-                  onClick={() => handleSelectNavItem("/best-sellers")}
-                >
-                  Все товары
-                </li>
-                <li
-                  className="cursor-pointer"
-                  onClick={() =>
-                    handleSelectNavItem("/best-sellers?category=eyes")
-                  }
-                >
-                  Глаза
-                </li>
-                <li
-                  className="cursor-pointer"
-                  onClick={() =>
-                    handleSelectNavItem("/best-sellers?category=eyebrows")
-                  }
-                >
-                  Брови
-                </li>
-                <li
-                  className="cursor-pointer"
-                  onClick={() =>
-                    handleSelectNavItem("/best-sellers?category=face")
-                  }
-                >
-                  Лицо
-                </li>
-                <li
-                  className="cursor-pointer"
-                  onClick={() =>
-                    handleSelectNavItem("/best-sellers?category=lips")
-                  }
-                >
-                  Губы
-                </li>
-              </ul>
+              <div className="mt-2 mb-6">
+                <MultiLevelDropdownMenu
+                  categories={categories}
+                  onSelect={(slug) => handleSelectNavItem(`/best-sellers?category=${slug}`)}
+                />
+              </div>
             )}
           </div>
 
